@@ -75,6 +75,89 @@ def add_user():
 
     return redirect('/')
 
+@app.route('/login', methods=['POST'])
+def login():
+
+    email = request.form.get('email')
+    password = request.form.get('password')
+
+    try:
+        user = User.query.filter(User.email==email).one()
+        session['user'] = user.user_id
+        flash('Logged in')
+        return jsonify({'code': 1})
+    except:
+        return jsonify({'code': 0})
+
+@app.route('/logout')
+def logout():
+
+    print 'at least I got here'
+
+    del session['user']
+
+    flash('Successfully logged out')
+
+    return redirect('/')
+
+@app.route('/users/<user_id>')
+def display_user(user_id):
+
+
+    user = User.query.get(user_id)
+    print user
+
+    return render_template('user_info.html', user=user)
+
+@app.route('/movies')
+def display_movies():
+
+    movies = Movie.query.order_by(Movie.title).all()
+
+    return render_template('movie_list.html', movies=movies)
+
+@app.route('/movies/<movie_id>')
+def display_movie_info(movie_id):
+
+
+    movie = Movie.query.get(movie_id)
+    if 'user' in session:
+        user = User.query.get(session['user'])
+        rated = Rating.query.filter(Rating.user_id == user.user_id, 
+                    Rating.movie_id==movie.movie_id).first()
+
+    else:
+        rated = None
+
+    return render_template('movie_details.html', movie=movie, rated=rated)
+
+
+@app.route('/add-rating', methods=['POST'])
+def add_rating():
+
+    user = User.query.get(session['user'])
+    movie = Movie.query.get(int(request.form.get('movie')))
+    score = request.form.get('score')
+
+    try:
+        rating = Rating.query.filter(Rating.user_id==user.user_id, Rating.movie_id==movie.movie_id).one()
+        
+        rating.score = score
+        db.session.commit()
+        return jsonify({'msg': 'this person has updated the movie rating', 'reload': 1})
+    except:
+        rating = Rating(user_id=user.user_id, movie_id=movie.movie_id, score=int(score))
+        db.session.add(rating)
+        db.session.commit()
+        return jsonify({'msg': 'this person has not rated this movie but now has', 'reload': 0})
+
+@app.route('/update-rating', methods=['POST'])
+def update_rating():
+
+    user = User.query.get(session['user'])
+    movie = movie.query.get(int(request.form.get('movie')))
+    score = request.form.get('score')
+
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
@@ -87,3 +170,6 @@ if __name__ == "__main__":
     DebugToolbarExtension(app)
 
     app.run()
+
+###### TO DO:
+###### exception handling

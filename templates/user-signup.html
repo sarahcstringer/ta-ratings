@@ -3,12 +3,12 @@
 
 <form action='/add-user' method='POST' id='adduser'>
 
-    Name: <input type='text' name='name' id='name' placeholder="Name"><br>
-    Email: <input type='text' name='email' id='email' placeholder="Email"><br>
-    Age: <input type='number' id='age' name='age'><br>
-    Zipcode: <input type='text' id='zip' name='zipcode'><br>
+    Name: <input type='text' name='name' id='name' placeholder="Name" required><br>
+    Email: <input type='text' name='email' id='email' placeholder="Email" required><br>
+    Age: <input type='number' id='age' name='age' required><br>
+    Zipcode: <input type='text' id='zip' name='zipcode' required><br>
     <br>
-    Create Password: <input type='password' name='password' id='password'><br>
+    Create Password: <input type='password' name='password' id='password' required><br>
 
     <input type='submit' value='submit' placeholder="Zipcode" id='submit-signup'>
 

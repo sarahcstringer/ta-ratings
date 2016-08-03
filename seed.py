@@ -68,7 +68,7 @@ def load_ratings():
     Rating.query.delete()
 
     for row in open('seed_data/u.data'):
-        movie_id, user_id, score, timestamp = row.rstrip().split('\t')
+        user_id, movie_id, score, timestamp = row.rstrip().split('\t')
 
         rating = Rating(user_id=user_id, movie_id=movie_id, score=score)
 
