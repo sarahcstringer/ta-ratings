@@ -2,12 +2,14 @@
 
 from jinja2 import StrictUndefined
 import json
+import requests
 
 # from flask.ext.sqlalchemy import SQLAlchemy
 # from sqlalchemy import exc
 
 from flask import Flask, render_template, request, redirect, session, flash, jsonify
 from flask_debugtoolbar import DebugToolbarExtension
+from sqlalchemy import func
 
 from model import connect_to_db, db, User, Rating, Movie
 
@@ -26,6 +28,8 @@ app.jinja_env.undefined = StrictUndefined
 @app.route('/')
 def index():
     """Homepage."""
+
+    top_five = db.session.query(func.count(Rating.score))
 
     return render_template('homepage.html')
 
@@ -121,6 +125,9 @@ def display_movie_info(movie_id):
 
 
     movie = Movie.query.get(movie_id)
+
+    avg_rating = db.session.query(func.avg(Rating.score)).filter(Rating.movie_id==int(movie_id)).one()
+
     if 'user' in session:
         user = User.query.get(session['user'])
         rated = Rating.query.filter(Rating.user_id == user.user_id, 
@@ -129,7 +136,7 @@ def display_movie_info(movie_id):
     else:
         rated = None
 
-    return render_template('movie_details.html', movie=movie, rated=rated)
+    return render_template('movie_details.html', movie=movie, rated=rated, avg_rating=avg_rating[0])
 
 
 @app.route('/add-rating', methods=['POST'])
@@ -158,7 +165,26 @@ def update_rating():
     movie = movie.query.get(int(request.form.get('movie')))
     score = request.form.get('score')
 
+@app.route('/user/<user_id>')
+def display_user_profile(user_id):
 
+    user = User.query.get(user_id)
+
+
+    return render_template('user_profile.html', user=user)
+
+
+@app.route('/user/<user_id>/discover')
+def display_discoverables(user_id):
+
+    user = User.query.get(user_id)
+
+    return render_template('discover.html', user=user)
+
+
+
+
+# # # # # # # #
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
     # point that we invoke the DebugToolbarExtension

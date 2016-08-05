@@ -5,16 +5,27 @@
 <h1>{{movie.title}}</h1>
 <p><a href='{{ movie.imdb_url }}'>View on IMDB</a></p>
 
+<p><b>Average user rating:</b> <span id='movieAvg'>{{ '%0.2f' % avg_rating|float }}</span></p>
+
 {% if 'user' in session %}
 
 <button id='addRating' name='addRating'>Add Rating</button>
 <form action='/add-rating' method='POST' id='ratingsStuff' hidden>
-    Add your rating: <input type='text' id='score' name='score'>
+    Add your rating: 
+
+    <div id='starRatings' style='font-size:200%'>
+    <span id='1star' class="glyphicon glyphicon-star-empty" aria-hidden="true" ></span>
+    <span id='2star' class="glyphicon glyphicon-star-empty" aria-hidden="true"></span>
+    <span id='3star' class="glyphicon glyphicon-star-empty" aria-hidden="true"></span>
+    <span id='4star' class="glyphicon glyphicon-star-empty" aria-hidden="true"></span>
+    <span id='5star' class="glyphicon glyphicon-star-empty" aria-hidden="true"></span>
+    </div>
+
     <input type='hidden' value='{{ movie.movie_id }}' name='movie_id'>
-    <input type='submit' value='submit' id='submitRating'>
 </form>
 
 {% endif %}
+<br><br>
 
 <ul id='userRatings'>
 
@@ -29,25 +40,43 @@
 
 <script>
 
+$('div#starRatings span').on('mouseover', function() {
+
+    for (var i = 1; i <= $( this ).attr('id')[0]; i++ ){
+        $('#'+i+'star').removeClass('glyphicon glyphicon-star-empty');
+        $('#'+i+'star').addClass('glyphicon glyphicon-star');
+    }
+});
+
+
+$('div#starRatings span').on('mouseout', function() {
+    $('div#starRatings span').removeClass('glyphicon glyphicon-star');
+    $('div#starRatings span').addClass('glyphicon glyphicon-star-empty');
+});
+
 {% if 'user' in session %}
 $('#addRating').on('click', function(){ 
     $('#ratingsStuff').toggle();
     })
 
-$('#submitRating').on('click', function(evt) {
-    evt.preventDefault();
+$('div#starRatings span').on('click', function(evt) {
 
-    dataSend = {'movie': '{{ movie.movie_id }}', 'score': $('#score').val()}
+    dataSend = {'movie': '{{ movie.movie_id }}', 'score': $( this ).attr('id')[0]}
 
     $.post('/add-rating', dataSend, function(result) {
         console.log(result.msg);
         
         if (result.reload === 1) {
             $("li#{{session['user']}}").load(location.href + " #{{session['user']}}");
+            $('#movieAvg').load(location.href + ' #movieAvg');
+            $('#ratingsStuff').hide();
+
         
         } else {
             $('#userRatings').append("<li id='{{session['user']}}'>")
             $("li#{{session['user']}}").load(location.href + " #{{session['user']}}")
+            $('#movieAvg').load(location.href + ' #movieAvg');
+            $('#ratingsStuff').hide();
 
     }
     })
